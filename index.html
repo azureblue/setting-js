@@ -9,8 +9,16 @@
         <script>
             var select = new SelectSetting("select: ", {a: "aa", b: "bb"}, {}, el => el);
             elemById("bd").appendChild(select.generate());
+            
             var input = new InputSetting("input: ", {type: "number", value: 1}, el => el);
             elemById("bd").appendChild(input.generate());
+            
+            var multiSetting = new MultiSetting("some settings: ", [
+                 new InputSetting("mInput1 : ", {type: "number", value: 1}, el => el),
+                 new InputSetting("mInput2 : ", {type: "number", value: 1}, el => el),
+                 new SelectSetting("mSelect: ", {a: "maa", b: "mbb"}, {}, el => el)
+            ]);
+            elemById("bd").appendChild(multiSetting.generate());
             
         </script>
     </body>

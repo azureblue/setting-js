@@ -2,10 +2,13 @@ var Setting = {};
 
 Setting.wrapperClass = "setting_wrapper";
 Setting.labelClass = "setting_label";
+Setting.multiSetting = "multiSetting_label";
 Setting.idCount = 0;
 
 var genSettingWrapper = () => genElement("div", {class: Setting.wrapperClass});
 var genSettingLabel = labelText => genElement("label", {class: Setting.labelClass}, labelText);
+var genMultiSettingLabel = labelText => genElement("label", 
+    {class: Setting.multiSetting, style: "disply: inline-block; width: 100%;"}, labelText);
 var genElement = (tag, attr, txt) => {
     var el = document.createElement(tag);
     el.setAttribute("id", genId());
@@ -33,6 +36,18 @@ function LabeledSetting(labelText, element) {
         wrapper.appendChild(element);
         return wrapper;
     };
+}
+
+function MultiSetting(commonLabelText, settingList, resultProvider) {
+    this.generate = () => {
+        var wrapper = genSettingWrapper();
+        var label = genMultiSettingLabel(commonLabelText);
+        wrapper.appendChild(label);
+        settingList.forEach(se => wrapper.appendChild(se.generate()));
+        return wrapper;
+    };
+    
+    this.get = () => resultProvider();
 }
 
 function InputSetting(labelText, inputAttributes, valueMapper) {
