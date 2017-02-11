@@ -20,6 +20,19 @@
             ]);
             elemById("bd").appendChild(multiSetting.generate());
             
+        var selectSubSettings = new SelectSubSettings("subsettings", {
+            a: new InputSetting("inputA: ", {type: "number", value: 1}, el => el),
+            b: new MultiSetting("some settings: ", [
+                 new InputSetting("subsettings mInput1 : ", {type: "number", value: 1}, el => el),
+                 new InputSetting("subsettings mInput2 : ", {type: "number", value: 1}, el => el),
+                 new SelectSetting("subsettings mSelect: ", {a: "maa", b: "mbb"}, {}, el => el)
+            ])
+        }, {
+            a: "A",
+            b: "B"
+        }, {}, () => console.log("sub settings value: " + selectSubSettings.get()));
+        
+        elemById("bd").appendChild(selectSubSettings.generate());
         </script>
     </body>
 </html>

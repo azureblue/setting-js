@@ -7,8 +7,8 @@ Setting.idCount = 0;
 
 var genSettingWrapper = () => genElement("div", {class: Setting.wrapperClass});
 var genSettingLabel = labelText => genElement("label", {class: Setting.labelClass}, labelText);
-var genMultiSettingLabel = labelText => genElement("label", 
-    {class: Setting.multiSetting, style: "disply: inline-block; width: 100%;"}, labelText);
+var genMultiSettingLabel = labelText => genElement("label",
+            {class: Setting.multiSetting, style: "disply: inline-block; width: 100%;"}, labelText);
 var genElement = (tag, attr, txt) => {
     var el = document.createElement(tag);
     el.setAttribute("id", genId());
@@ -23,7 +23,7 @@ var getId = el => el.getAttribute("id");
 var elemById = id => document.getElementById(id);
 var forEachEntry = (obj, action) => Object.keys(obj).forEach(pr => action(pr, obj[pr]));
 var checkNoIdInAttrMap = (obj) => {
-     if (obj["id"])
+    if (obj["id"])
         throw "Id attribute must not be specified.";
 };
 var genId = () => "setting_##_" + Setting.idCount++;
@@ -38,6 +38,28 @@ function LabeledSetting(labelText, element) {
     };
 }
 
+function SelectSubSettings(labelText, valueSettingMap, valueTextMap, selectAttrs, changeListener) {
+    var subSettingWrapper;
+    var selectSetting;
+    this.generate = () => {
+        selectSetting = new SelectSetting(labelText, valueTextMap, selectAttrs, x => valueSettingMap[x], updateSubSettings);
+        if (changeListener)
+            selectSetting.getSelectElement().addEventListener("change", changeListener);
+        var wrapper = selectSetting.generate();
+        subSettingWrapper = genSettingWrapper();
+        wrapper.appendChild(subSettingWrapper);
+        updateSubSettings();
+        return wrapper;
+    };
+
+    function updateSubSettings() {
+        subSettingWrapper.textContent = "";
+        subSettingWrapper.appendChild(selectSetting.get().generate());
+    }
+
+    this.get = () => selectSetting.get().get();
+}
+
 function MultiSetting(commonLabelText, settingList, resultProvider) {
     this.generate = () => {
         var wrapper = genSettingWrapper();
@@ -46,33 +68,36 @@ function MultiSetting(commonLabelText, settingList, resultProvider) {
         settingList.forEach(se => wrapper.appendChild(se.generate()));
         return wrapper;
     };
-    
-    this.get = () => resultProvider();
+
+    this.get = resultProvider ? () => resultProvider() : () => settingList.map(se => se.get());
 }
 
 function InputSetting(labelText, inputAttributes, valueMapper) {
-    checkNoIdInAttrMap(inputAttributes);    
-    var inputId;
-    
-    this.generate = () => {
-        var input = genElement("input", inputAttributes);
-        inputId = getId(input);
-        return new LabeledSetting(labelText, input).generate();        
-    };    
-    
-    this.get = () => valueMapper(elemById(inputId).value);
-};
+    checkNoIdInAttrMap(inputAttributes);
+    var input = genElement("input", inputAttributes);
 
-function SelectSetting(labelText, valueTextMap, selectAttrs, valueMapper) {
+    this.generate = () => {
+        return new LabeledSetting(labelText, input).generate();
+    };
+
+    this.get = () => valueMapper(input.value);
+}
+
+function SelectSetting(labelText, valueTextMap, selectAttrs, valueMapper, changeListener) {
     checkNoIdInAttrMap(selectAttrs);
-    var selectId;
+    var select = genElement("select", selectAttrs);
+    init();
+    
+    function init() {
+        if (changeListener)
+            select.addEventListener("change", changeListener);
+        forEachEntry(valueTextMap, (va, txt) => select.appendChild(genElement("option", {value: va}, txt)));
+    }
     
     this.generate = () => {
-        var select = genElement("select", selectAttrs);
-        forEachEntry(valueTextMap, (va, txt) => select.appendChild(genElement("option", {value: va}, txt)));
-        selectId = getId(select);
         return new LabeledSetting(labelText, select).generate();
     };
-    
-    this.get = () => valueMapper(elemById(selectId).value);
+
+    this.getSelectElement = () => select;
+    this.get = () => valueMapper(select.value);
 }
